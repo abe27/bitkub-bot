@@ -240,7 +240,7 @@ def main():
         if last_price != False:
             print(
                 f"ราคา {symbol['symbol']} ล่าสุด: {last_price['last']:,} {API_CURRENCY} {last_price['percentChange']}")
-            s = get_candle(symbol['symbol'], "240")
+            s = get_candle(symbol['symbol'], "15")
             if s != None and s != False:
                 s['percent'] = f"{last_price['percentChange']}%"
                 interesting = True
