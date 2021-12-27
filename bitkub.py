@@ -15,11 +15,11 @@ load_dotenv()
 pd.options.plotting.backend = "plotly"
 
 # API info
-API_HOST = os.getenv('API_HOST')
-API_KEY = os.getenv('API_KEY')
-API_SECRET = (os.getenv('API_SECRET')).encode('utf8')
-API_CURRENCY = os.getenv('API_CURRENCY')
-API_TIMEFRAME = (os.getenv('API_TIMEFRAME')).split(
+API_HOST = os.getenv('API_BITKUB_HOST')
+API_KEY = os.getenv('API_BITKUB_KEY')
+API_SECRET = (os.getenv('API_BITKUB_SECRET')).encode('utf8')
+API_CURRENCY = os.getenv('API_BITKUB_CURRENCY')
+API_TIMEFRAME = (os.getenv('API_BITKUB_TIMEFRAME')).split(
     ',')
 API_LIMIT = int(os.getenv('API_LIMIT'))
 API_EMA_FAST = int(os.getenv('API_EMA_FAST'))
