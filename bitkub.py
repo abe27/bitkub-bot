@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import pandas as pd
 import pandas_ta as ta
 import hashlib
@@ -8,7 +9,18 @@ import datetime
 import os
 import sys
 
-from dotenv import load_dotenv
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
+
+# Fetch the service account key JSON file contents
+cred = credentials.Certificate('keys.json')
+
+# Initialize the app with a service account, granting admin privileges
+firebase_admin.initialize_app(cred, {
+    'databaseURL': os.getenv('API_FIREBASE_URL')
+})
+
 load_dotenv()
 
 # set plotting with plotly
@@ -168,8 +180,8 @@ def get_candle(pair, timeframe):
         # print("EMA_slow_B = ", EMA_slow_B)
 
         # Signal and Trend
-        Signal = "none"
-        Trend = "none"
+        Signal = None
+        Trend = None
 
         if EMA_fast_A > EMA_slow_A:
             Trend = "Up"
@@ -188,17 +200,24 @@ def get_candle(pair, timeframe):
         print(
             f"{pair} Signal = {Signal} val: {(EMA_fast_A - EMA_slow_A) - (EMA_fast_B - EMA_slow_B)}")
 
-        if Signal == "Buy":
-            return {
-                "currency": API_CURRENCY,
-                "symbol": pair,
-                "trend": Trend,
-                "signal": Signal,
-            }
+        # if Signal == "Buy":
+        #     return {
+        #         "currency": API_CURRENCY,
+        #         "symbol": pair,
+        #         "trend": Trend,
+        #         "signal": Signal,
+        #     }
+
+        return {
+            "currency": API_CURRENCY,
+            "symbol": pair,
+            "trend": Trend,
+            "signal": Signal,
+        }
 
         # fig = df_ohlcv['close'].plot()
         # fig.show()
-        return False
+        # return False
 
 
 def line_notification(msg):
@@ -237,17 +256,26 @@ def main():
         symbol = symbols[i]
         print(f"----------------- {symbol['symbol']} ------------------\n")
         last_price = get_last_price(symbol['global'])
+
+        # # บันทึกข้อมูลใน firebase
+        # ref = db.reference(f"crypto/bitkub/current_price/{symbol['symbol']}")
+
         if last_price != False:
             print(
                 f"ราคา {symbol['symbol']} ล่าสุด: {last_price['last']:,} {API_CURRENCY} {last_price['percentChange']}")
-            s = get_candle(symbol['symbol'], "15")
+            time_frame = "1"
+            s = get_candle(symbol['symbol'], time_frame)
             if s != None and s != False:
                 s['percent'] = f"{last_price['percentChange']}%"
-                interesting = True
-                if last_price['percentChange'] > 1.5:
-                    interesting = False
+                # interesting = True
+                # if last_price['percentChange'] > 2:
+                #     interesting = False
 
-                s['interesting'] = interesting
+                # s['interesting'] = interesting
+                # s['timeframe'] = time_frame
+                s['lastprice'] = f"{last_price['last']:,}"
+                s['lastupdate'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                # ref.set(s)
                 list_symbol.append(s)
 
         print(f"----------------- end ------------------\n")
@@ -255,12 +283,13 @@ def main():
 
     # df = pd.DataFrame(list_symbol)
     # print(df)
-
+    
     i = 0
     while i < len(list_symbol):
         x = 0
         while x < len(API_TIMEFRAME):
             timeframe = API_TIMEFRAME[x]
+            
             d = get_candle(list_symbol[i]['symbol'], timeframe)
 
             colname = f"{timeframe}Minute"
@@ -268,50 +297,65 @@ def main():
                 colname = f"{timeframe}ay"
 
             list_symbol[i][colname] = False
-            if d != False:
-                list_symbol[i][colname] = True
-
+            if d != None:
+                if d['signal'] != None:
+                    list_symbol[i][colname] = True
             x += 1
         i += 1
 
     print(f"*************************************")
     df = pd.DataFrame(list_symbol)
+    df.to_excel("exports/data.xlsx")
     print(f"\n{df}\n")
     print(f"******************************************\n")
     x = 0
     while x < len(list_symbol):
+        is_interesting = False
         r = list_symbol[x]
+        
+        # บันทึกข้อมูลใน firebase
+        ref = db.reference(f"crypto/bitkub/signals/{r['symbol']}")
         __1m = "-"
         if r['1Minute']:
             __1m = "OK"
+            is_interesting = True
 
         __5m = "-"
         if r['5Minute']:
             __5m = "OK"
+            is_interesting = True
 
         __15m = "-"
         if r['15Minute']:
             __15m = "OK"
+            is_interesting = True
 
         __30m = "-"
         if r['30Minute']:
             __30m = "OK"
+            is_interesting = True
 
         __60m = "-"
         if r['60Minute']:
             __60m = "OK"
+            is_interesting = True
 
         __240m = "-"
         if r['240Minute']:
             __240m = "OK"
+            is_interesting = True
 
         __1day = "-"
         if r['1Day']:
             __1day = "OK"
-
+            is_interesting = True
+        
+        r['interest'] = is_interesting
+        ref.set(r)
         msg = f"\nSYMBOL: {r['symbol']}\n1m:  {__1m}\n5m:  {__5m}\n15m:  {__15m}\n30m:  {__30m}\n1h:  {__60m}\n4h:  {__240m}\n1Day:  {__1day}"
         # msg = f"SYMBOL: {r['symbol']}"
-        line_notification(msg)
+        print(msg)
+        # line_notification(msg)
 
         x += 1
     return
