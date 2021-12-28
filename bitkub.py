@@ -340,7 +340,7 @@ def main():
         if is_interesting:
             if r['signal'] == "Buy":
                 # บันทึกข้อมูลใน firebase
-                interest_db = db.reference(f"crypto/bitkub/subscribes/{r['symbol']}/{int(time.time())}")
+                interest_db = db.reference(f"crypto/bitkub/subscribes/{r['symbol']}/{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}")
                 interest_db.set(r)
                 
                 print(f"{r['symbol']}")
