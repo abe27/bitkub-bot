@@ -309,24 +309,6 @@ def main():
         # บันทึกข้อมูล lastprice ใน firebase
         fire_db_link = f"crypto/bitkub/signals/{r['symbol']}"
         ref = db.reference(fire_db_link)
-        # __1m = "-"
-        # if r['1Minute']:
-        #     __1m = "OK"
-        #     is_interesting = True
-        #     is_score += 1
-
-        # __5m = "-"
-        # if r['5Minute']:
-        #     __5m = "OK"
-        #     is_interesting = True
-        #     is_score += 1
-
-        # __15m = "-"
-        # if r['15Minute']:
-        #     __15m = "OK"
-        #     is_interesting = True
-        #     is_score += 1
-
         __30m = "-"
         if r['30Minute']:
             __30m = "OK"
