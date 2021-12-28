@@ -362,9 +362,10 @@ def main():
             # บันทึกข้อมูลใน firebase
             interest_db = db.reference(f"crypto/bitkub/subscribes/{r['symbol']}/{int(time.time())}")
             interest_db.set(r)
-            print(f"{r['symbol']}")
-            line_notification(msg)
-
+            if r['signal'] == "Buy":
+                print(f"{r['symbol']}")
+                line_notification(msg)
+                
         x += 1
     return
 
