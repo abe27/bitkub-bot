@@ -8,6 +8,7 @@ import requests
 import datetime
 import os
 import sys
+import time
 
 import firebase_admin
 from firebase_admin import credentials
@@ -350,11 +351,8 @@ def main():
         #### ถ้าน่าสนใจให้ทำการบันทึกข้อมูลเพื่อทำการตรวจสอบ
         if is_interesting:
             # บันทึกข้อมูลใน firebase
-            interest_db = db.reference(f"crypto/bitkub/subscribes/{r['symbol']}/{datetime.datetime.now()}")
-            interest_db.set({
-                'symbol': r['symbol'],
-                'price': r['lastprice'],
-            })
+            interest_db = db.reference(f"crypto/bitkub/subscribes/{r['symbol']}/{time.time()}")
+            interest_db.set(r)
             print(f"{r['symbol']}")
 
         x += 1
