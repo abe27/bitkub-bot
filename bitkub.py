@@ -341,7 +341,7 @@ def main():
             if r['signal'] != None:
                 # บันทึกข้อมูลใน firebase
                 interest_db = db.reference(f"crypto/bitkub/subscribes/{r['symbol']}/{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}")
-                last_price = get_last_price(r["symbol"])
+                last_price = get_last_price(f'{r["currency"]}_{r["symbol"]}')
                 interest_db.set({
                     "lastprice": float(last_price['last']),
                     "lastupdate": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
