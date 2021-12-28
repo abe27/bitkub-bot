@@ -14,6 +14,9 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
 
+# Initialize Environment
+load_dotenv()
+
 # Fetch the service account key JSON file contents
 cred = credentials.Certificate('keys.json')
 
@@ -21,8 +24,6 @@ cred = credentials.Certificate('keys.json')
 firebase_admin.initialize_app(cred, {
     'databaseURL': os.getenv('API_FIREBASE_URL')
 })
-
-load_dotenv()
 
 # set plotting with plotly
 pd.options.plotting.backend = "plotly"
