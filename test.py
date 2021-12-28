@@ -1,5 +1,5 @@
 import sys
-from .cryex.bitkub import Bitkub
+from crytoex.bitkub import Bitkub
 
 bitkub = Bitkub()
 
