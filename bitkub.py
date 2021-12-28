@@ -261,7 +261,7 @@ def main():
         if last_price != False:
             print(
                 f"ราคา {symbol['symbol']} ล่าสุด: {last_price['last']:,} {API_CURRENCY} {last_price['percentChange']}")
-            time_frame = "15"
+            time_frame = "1D"
             s = get_candle(symbol['symbol'], time_frame)
             if s != None and s != False:
                 s['percent'] = f"{last_price['percentChange']}%"
@@ -306,7 +306,9 @@ def main():
         r = list_symbol[x]
         
         # บันทึกข้อมูล lastprice ใน firebase
-        ref = db.reference(f"crypto/bitkub/signals/{r['symbol']}")
+        fire_db_link = f"crypto/bitkub/signals/{r['symbol']}"
+        print(f"save to {fire_db_link}")
+        ref = db.reference(fire_db_link)
         __1m = "-"
         if r['1Minute']:
             __1m = "OK"
