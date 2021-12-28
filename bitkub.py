@@ -302,7 +302,6 @@ def main():
     print(f"******************************************\n")
     x = 0
     while x < len(list_symbol):
-        is_score = 0
         is_interesting = False
         r = list_symbol[x]
         
@@ -332,28 +331,23 @@ def main():
         if r['30Minute']:
             __30m = "OK"
             is_interesting = True
-            is_score += 1
 
         __60m = "-"
         if r['60Minute']:
             __60m = "OK"
             is_interesting = True
-            is_score += 1
 
         __240m = "-"
         if r['240Minute']:
             __240m = "OK"
             is_interesting = True
-            is_score += 1
 
         __1day = "-"
         if r['1Day']:
             __1day = "OK"
             is_interesting = True
-            is_score += 1
         
         r['interest'] = is_interesting
-        r['score'] = is_score
         ref.set(r)
         msg = f"\nSYMBOL: {r['symbol']}\n30m:  {__30m}\n1h:  {__60m}\n4h:  {__240m}\n1Day:  {__1day}"
         # msg = f"SYMBOL: {r['symbol']}"
