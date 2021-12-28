@@ -257,25 +257,15 @@ def main():
         print(f"----------------- {symbol['symbol']} ------------------\n")
         last_price = get_last_price(symbol['global'])
 
-        # # บันทึกข้อมูลใน firebase
-        # ref = db.reference(f"crypto/bitkub/current_price/{symbol['symbol']}")
-
         if last_price != False:
             print(
                 f"ราคา {symbol['symbol']} ล่าสุด: {last_price['last']:,} {API_CURRENCY} {last_price['percentChange']}")
-            time_frame = "1"
+            time_frame = "15"
             s = get_candle(symbol['symbol'], time_frame)
             if s != None and s != False:
                 s['percent'] = f"{last_price['percentChange']}%"
-                # interesting = True
-                # if last_price['percentChange'] > 2:
-                #     interesting = False
-
-                # s['interesting'] = interesting
-                # s['timeframe'] = time_frame
                 s['lastprice'] = f"{last_price['last']:,}"
                 s['lastupdate'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                # ref.set(s)
                 list_symbol.append(s)
 
         print(f"----------------- end ------------------\n")
@@ -313,7 +303,7 @@ def main():
         is_interesting = False
         r = list_symbol[x]
         
-        # บันทึกข้อมูลใน firebase
+        # บันทึกข้อมูล lastprice ใน firebase
         ref = db.reference(f"crypto/bitkub/signals/{r['symbol']}")
         __1m = "-"
         if r['1Minute']:
@@ -356,6 +346,16 @@ def main():
         # msg = f"SYMBOL: {r['symbol']}"
         print(msg)
         # line_notification(msg)
+        
+        #### ถ้าน่าสนใจให้ทำการบันทึกข้อมูลเพื่อทำการตรวจสอบ
+        if is_interesting:
+            # บันทึกข้อมูลใน firebase
+            interest_db = db.reference(f"crypto/bitkub/subscribes/{r['symbol']}/{datetime.datetime.now()}")
+            interest_db.set({
+                'symbol': r['symbol'],
+                'price': r['lastprice'],
+            })
+            print(f"{r['symbol']}")
 
         x += 1
     return
