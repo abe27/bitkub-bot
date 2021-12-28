@@ -297,7 +297,8 @@ def main():
 
     print(f"*************************************")
     df = pd.DataFrame(list_symbol)
-    df.to_excel("exports/data.xlsx")
+    export_filename = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    df.to_excel(f"exports/{export_filename}_data.xlsx")
     print(f"\n{df}\n")
     print(f"******************************************\n")
     x = 0
@@ -307,7 +308,6 @@ def main():
         
         # บันทึกข้อมูล lastprice ใน firebase
         fire_db_link = f"crypto/bitkub/signals/{r['symbol']}"
-        print(f"save to {fire_db_link}")
         ref = db.reference(fire_db_link)
         # __1m = "-"
         # if r['1Minute']:
