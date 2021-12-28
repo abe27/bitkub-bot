@@ -310,23 +310,23 @@ def main():
         fire_db_link = f"crypto/bitkub/signals/{r['symbol']}"
         print(f"save to {fire_db_link}")
         ref = db.reference(fire_db_link)
-        __1m = "-"
-        if r['1Minute']:
-            __1m = "OK"
-            is_interesting = True
-            is_score += 1
+        # __1m = "-"
+        # if r['1Minute']:
+        #     __1m = "OK"
+        #     is_interesting = True
+        #     is_score += 1
 
-        __5m = "-"
-        if r['5Minute']:
-            __5m = "OK"
-            is_interesting = True
-            is_score += 1
+        # __5m = "-"
+        # if r['5Minute']:
+        #     __5m = "OK"
+        #     is_interesting = True
+        #     is_score += 1
 
-        __15m = "-"
-        if r['15Minute']:
-            __15m = "OK"
-            is_interesting = True
-            is_score += 1
+        # __15m = "-"
+        # if r['15Minute']:
+        #     __15m = "OK"
+        #     is_interesting = True
+        #     is_score += 1
 
         __30m = "-"
         if r['30Minute']:
@@ -355,7 +355,7 @@ def main():
         r['interest'] = is_interesting
         r['score'] = is_score
         ref.set(r)
-        msg = f"\nSYMBOL: {r['symbol']}\n1m:  {__1m}\n5m:  {__5m}\n15m:  {__15m}\n30m:  {__30m}\n1h:  {__60m}\n4h:  {__240m}\n1Day:  {__1day}"
+        msg = f"\nSYMBOL: {r['symbol']}\n30m:  {__30m}\n1h:  {__60m}\n4h:  {__240m}\n1Day:  {__1day}"
         # msg = f"SYMBOL: {r['symbol']}"
         print(msg)
         # line_notification(msg)
