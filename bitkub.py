@@ -359,10 +359,11 @@ def main():
         
         #### ถ้าน่าสนใจให้ทำการบันทึกข้อมูลเพื่อทำการตรวจสอบ
         if is_interesting:
-            # บันทึกข้อมูลใน firebase
-            interest_db = db.reference(f"crypto/bitkub/subscribes/{r['symbol']}/{int(time.time())}")
-            interest_db.set(r)
             if r['signal'] == "Buy":
+                # บันทึกข้อมูลใน firebase
+                interest_db = db.reference(f"crypto/bitkub/subscribes/{r['symbol']}/{int(time.time())}")
+                interest_db.set(r)
+                
                 print(f"{r['symbol']}")
                 line_notification(msg)
                 
