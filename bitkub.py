@@ -8,7 +8,6 @@ import requests
 import datetime
 import os
 import sys
-import time
 
 import firebase_admin
 from firebase_admin import credentials
@@ -167,19 +166,37 @@ def get_candle(pair, timeframe):
         # EMA_fast = data.ta.ema(EMA_fast_set)
         EMA_slow = data.ta.ema(API_EMA_SLOW)
         df_ohlcv = pd.concat([data, EMA_slow], axis=1)
-        # print(df_ohlcv)
+        df_ohlcv.dropna(True)
+        print(df_ohlcv.tail(6))
+        
+        ### export to excel
+        file_excel = f"exports/excels/assets/{pair}/{datetime.datetime.now().strftime('%Y%m%d')}"
+        if not os.path.exists(file_excel):
+            os.makedirs(file_excel)
+            
+        df_ohlcv.to_excel(f"{file_excel}/{timeframe}_{datetime.datetime.now().strftime('%Y%m%d%H%M')}.xlsx")
 
         # EMA Cross
-        count = len(df_ohlcv)
-        EMA_fast_A = df_ohlcv['EMA_' + str(API_EMA_FAST)][count-2]
-        EMA_fast_B = df_ohlcv['EMA_' + str(API_EMA_FAST)][count-3]
+        count = (len(df_ohlcv) - 1)
+        EMA_fast_A = df_ohlcv['EMA_' + str(API_EMA_FAST)][count]
+        EMA_fast_B = df_ohlcv['EMA_' + str(API_EMA_FAST)][count-1]
+        EMA_fast_C = df_ohlcv['EMA_' + str(API_EMA_FAST)][count-2]
+        EMA_fast_D = df_ohlcv['EMA_' + str(API_EMA_FAST)][count-3]
+        EMA_fast_E = df_ohlcv['EMA_' + str(API_EMA_FAST)][count-4]
         # print("EMA_fast_A = ", EMA_fast_A)
         # print("EMA_fast_B = ", EMA_fast_B)
 
-        EMA_slow_A = df_ohlcv['EMA_' + str(API_EMA_SLOW)][count-2]
-        EMA_slow_B = df_ohlcv['EMA_' + str(API_EMA_SLOW)][count-3]
+        EMA_slow_A = df_ohlcv['EMA_' + str(API_EMA_SLOW)][count]
+        EMA_slow_B = df_ohlcv['EMA_' + str(API_EMA_SLOW)][count-1]
+        EMA_slow_C = df_ohlcv['EMA_' + str(API_EMA_SLOW)][count-2]
+        EMA_slow_D = df_ohlcv['EMA_' + str(API_EMA_SLOW)][count-3]
+        EMA_slow_E = df_ohlcv['EMA_' + str(API_EMA_SLOW)][count-4]
+        
         # print("EMA_slow_A = ", EMA_slow_A)
         # print("EMA_slow_B = ", EMA_slow_B)
+        
+        print("EMA FAST :=> ", EMA_fast_A,EMA_fast_B,EMA_fast_C,EMA_fast_D,EMA_fast_E)
+        print("EMA SLOW :=> ", EMA_slow_A,EMA_slow_B,EMA_slow_C,EMA_slow_D,EMA_slow_E)
 
         # Signal and Trend
         Signal = None
@@ -210,16 +227,22 @@ def get_candle(pair, timeframe):
         #         "signal": Signal,
         #     }
 
+        
+
+        fig = df_ohlcv['close'].plot()
+        # fig.show()
+        img_path = f"exports/images/{pair}/{datetime.datetime.now().strftime('%Y%m%d')}"
+        if not os.path.exists(img_path):
+            os.makedirs(img_path)
+            
+        fig.write_image(f"{img_path}/{pair}_{timeframe}.png")
+        
         return {
             "currency": API_CURRENCY,
             "symbol": pair,
             "trend": Trend,
             "signal": Signal,
         }
-
-        # fig = df_ohlcv['close'].plot()
-        # fig.show()
-        # return False
 
 
 def line_notification(msg):
@@ -297,12 +320,21 @@ def main():
 
     print(f"*************************************")
     df = pd.DataFrame(list_symbol)
-    export_filename = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    df.to_excel(f"exports/{export_filename}_data.xlsx")
+    export_filename = datetime.datetime.now().strftime("%Y%m%d")
+    file_path = f"exports/excels/price/{export_filename}"
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+
+    file_name = f"{file_path}/{export_filename}.xlsx"
+    # if os.path.isfile(file_name):
+    #     os.remove(file_name)
+        
+    df.to_excel(file_name)
     print(f"\n{df}\n")
     print(f"******************************************\n")
     x = 0
     while x < len(list_symbol):
+        trend_list = []
         is_interesting = False
         r = list_symbol[x]
         
@@ -313,23 +345,28 @@ def main():
         if r['30Minute']:
             __30m = "OK"
             is_interesting = True
+            trend_list.append("30Min")
 
         __60m = "-"
         if r['60Minute']:
             __60m = "OK"
             is_interesting = True
+            trend_list.append("60Min")
 
         __240m = "-"
         if r['240Minute']:
             __240m = "OK"
             is_interesting = True
+            trend_list.append("4H")
 
         __1day = "-"
         if r['1Day']:
             __1day = "OK"
             is_interesting = True
+            trend_list.append("1D")
         
         r['interest'] = is_interesting
+        r['trend_on'] = trend_list
         ref.set(r)
         msg = f"\nSYMBOL: {r['symbol']}\n30m:  {__30m}\n1h:  {__60m}\n4h:  {__240m}\n1Day:  {__1day}"
         # msg = f"SYMBOL: {r['symbol']}"
@@ -351,7 +388,7 @@ def main():
                     "trend": r["trend"],
                 })
                 print(f"{r['symbol']}")
-                line_notification(msg)
+                # line_notification(msg)
                 
         x += 1
     return
