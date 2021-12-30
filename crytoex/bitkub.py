@@ -149,7 +149,7 @@ class Bitkub:
 
         return False
     
-    def get_candle(self, symbol, timeframe):
+    def get_candle(self, symbol="BTC", timeframe="1D"):
         # เรียก ข้อมูลราคา ของสินค้ามาไว้ในรูปแบบ ตาราง
         # กำหนดตัวแปร ที่ต้องใช้
         # timeframe = ช่วงเวลาของกราฟที่จะดึงข้อมูล 1, 5, 15, 60, 240, 1D
@@ -190,30 +190,113 @@ class Bitkub:
         return data
     
     def trand_ema(self, symbol, df, fast_length=9, slow_length=26, export_limit=7, export_full=False):
-        print(f"trend up {fast_length} {slow_length}")
-        # เรียกโมดูล EMS
-        EMA_FAST = df.ta.ema(fast_length)
-        EMA_SLOW = df.ta.ema(slow_length)
-        
-        ## เพิ่มคอลั่ม EMA
-        data = pd.concat([df, EMA_FAST], axis=1)
-        df_ohlcv = pd.concat([data, EMA_SLOW], axis=1)
-        
-        df_length = (len(df_ohlcv) - 1)
-        EMS_FAST_A = df_ohlcv['EMA_' + str(fast_length)][df_length]
-        EMS_FAST_B = df_ohlcv['EMA_' + str(fast_length)][df_length - 1]
-        
-        EMS_SLOW_A = df_ohlcv['EMA_' + str(slow_length)][df_length]
-        EMS_SLOW_B = df_ohlcv['EMA_' + str(slow_length)][df_length - 1]
-        
-        export_path = f"exports/excels/trends"
-        if not os.path.exists(export_path):
-            os.makedirs(export_path)
+        SIGNAL          = None
+        TREND           = None
+        EMA_FAST_A      = 0
+        EMA_FAST_B      = 0
+        EMA_FAST_C      = 0
+        EMA_SLOW_A      = 0
+        EMA_SLOW_B      = 0
+        EMA_SLOW_C      = 0
+        AVG_MIN         = 0 
+        if len(df) > 0:
+            if len(df) < slow_length:
+                EMA_FAST_A = df['close'][len(df)]
+                EMA_FAST_B = df['close'][len(df) - 1]
+                EMA_FAST_C = df['close'][len(df) - 2]
+    
+                EMA_SLOW_A = df['close'][len(df)]
+                EMA_SLOW_B = df['close'][len(df) - 1]
+                EMA_SLOW_C = df['close'][len(df) - 2]
+                
+                df_ohlcv   = df
             
-        filename = f"{export_path}/EMA.{fast_length}.{slow_length}.{symbol}.{datetime.datetime.now().strftime('%Y%m%d')}.xlsx"
-        if export_full:
-            df_ohlcv.to_excel(filename)
             
-        else:
-            obj = df_ohlcv.tail(export_limit)
-            obj.to_excel(filename)
+            if len(df) >= 3 and len(df) > slow_length:
+                # print(f"trend up {fast_length} {slow_length}")
+                # เรียกโมดูล EMS
+                EMA_FAST = df.ta.ema(fast_length)
+                EMA_SLOW = df.ta.ema(slow_length)
+                
+                ## เพิ่มคอลั่ม EMA
+                data = pd.concat([df, EMA_FAST], axis=1)
+                df_ohlcv = pd.concat([data, EMA_SLOW], axis=1)
+                
+                df_length = (len(df_ohlcv) - 1)
+                EMA_FAST_A = df_ohlcv['EMA_' + str(fast_length)][df_length]
+                EMA_FAST_B = df_ohlcv['EMA_' + str(fast_length)][df_length - 1]
+                EMA_FAST_C = df_ohlcv['EMA_' + str(fast_length)][df_length - 2]
+                
+                EMA_SLOW_A = df_ohlcv['EMA_' + str(slow_length)][df_length]
+                EMA_SLOW_B = df_ohlcv['EMA_' + str(slow_length)][df_length - 1]
+                EMA_SLOW_C = df_ohlcv['EMA_' + str(slow_length)][df_length - 2]
+                
+                
+            SIGNAL = None
+            TREND = None
+                
+            if EMA_FAST_A > EMA_SLOW_A:
+                TREND = "UP"
+            
+            elif EMA_FAST_A < EMA_SLOW_A:
+                TREND = "DOWN"
+                
+            if EMA_FAST_B > EMA_SLOW_B and EMA_FAST_B > EMA_SLOW_B:
+                SIGNAL = "BUY"
+                
+            elif EMA_FAST_A < EMA_SLOW_A and EMA_FAST_B < EMA_SLOW_B:
+                SIGNAL = "SELL"
+            
+            print("\n" + colored(''.rjust(60, '+'), 'yellow') + "\n")  
+            print("EMA FAST :=> ", colored(EMA_FAST_A, 'red'), colored(EMA_FAST_B, 'blue'), colored(EMA_FAST_C, 'green'))
+            print("EMA SLOW :=> ", colored(EMA_SLOW_A, 'red'), colored(EMA_SLOW_B, 'blue'), colored(EMA_SLOW_C, 'green'))
+            
+            txtcolor_trend = "green"
+            if TREND == "DOWN": txtcolor_trend = "red"
+            txtcolor_signal = "green"
+            if SIGNAL == "DOWN": txtcolor_signal = "red"
+            
+            
+            print("TREND :=> ", colored(TREND, txtcolor_trend))
+            print("SIGNAL :=> ", colored(SIGNAL, txtcolor_signal))
+            
+            AVG_FAST = float((EMA_FAST_A+EMA_SLOW_A)/2)
+            AVG_SLOW = float((EMA_SLOW_A+EMA_SLOW_C)/2)
+            
+            print("\n")
+            print("AVG FAST :=> ", colored(AVG_FAST, 'red'))
+            print("AVG SLOW :=> ", colored(AVG_SLOW, 'red'))
+            
+            AVG_MIN = (AVG_FAST - AVG_SLOW)
+            print("AVG MINUS :=> ", colored(AVG_MIN, 'blue'))
+            print("\n" + colored(''.rjust(60, '+'), 'yellow'))
+                
+            
+            export_path = f"exports/excels/trends"
+            if not os.path.exists(export_path):
+                os.makedirs(export_path)
+                
+            filename = f"{export_path}/EMA.{fast_length}.{slow_length}.{symbol}.{datetime.datetime.now().strftime('%Y%m%d')}.xlsx"
+            
+            if df_ohlcv != None:
+                if export_full:
+                    df_ohlcv.to_excel(filename)
+                    
+                else:
+                    obj = df_ohlcv.tail(export_limit)
+                    obj.to_excel(filename)
+                
+            
+        return {
+            # 'data': df_ohlcv,
+            "asset": symbol,
+            'trend': TREND,
+            'signal': SIGNAL,
+            'last_fast': EMA_FAST_A,
+            'old_fast': EMA_FAST_C,
+            'last_slow': EMA_SLOW_A,
+            'old_slow': EMA_SLOW_C,
+            'avg_fast': (EMA_FAST_A+EMA_SLOW_A)/2,
+            'avg_slow': (EMA_SLOW_A+EMA_SLOW_C)/2,
+            'avg': AVG_MIN
+        }
