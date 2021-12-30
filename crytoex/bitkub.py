@@ -18,7 +18,6 @@ from termcolor import colored
 
 # set plotting with plotly
 pd.options.plotting.backend = "plotly"
-
 char_length = 60
 
 
