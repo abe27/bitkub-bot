@@ -299,3 +299,46 @@ class Bitkub:
             'avg': float(format(AVG_MIN,'.2f')),
             'lastupdate': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         }
+        
+    # get my-open-orders
+    def open_orders(self, symbol):
+        open_orders = {
+        'sym': symbol,
+        'ts': self.timeserver(),}
+
+        signature = self.sign(open_orders)
+        open_orders['sig'] = signature
+        r = requests.post(self.API_HOST + '/api/market/my-open-orders', headers=self.HEADERS, data=self.json_encode(open_orders))
+        return r
+
+    # def createbuy(symbol,amount,rate,ordertype):
+    #     data = {
+    #     'sym': symbol,
+    #     'amt': amount, # THB amount you want to spend
+    #     'rat': rate,
+    #     'typ': ordertype,
+    #     'ts': timeserver(),}
+
+    #     signature = sign(data)
+    #     data['sig'] = signature
+
+    #     #print('Payload with signature: ' + json_encode(data))
+    #     r = requests.post(API_HOST + '/api/market/place-bid', headers=header, data=json_encode(data))
+    #     print('Response: ' + r.text)
+    #     return r
+
+    # def createsell(symbol,amount,rate,ordertype):
+    #     data = {
+    #     'sym': symbol,
+    #     'amt': amount, # THB amount you want to spend
+    #     'rat': rate,
+    #     'typ': ordertype,
+    #     'ts': timeserver(),}
+
+    #     signature = sign(data)
+    #     data['sig'] = signature
+
+    #     #print('Payload with signature: ' + json_encode(data))
+    #     r = requests.post(API_HOST + '/api/market/place-ask', headers=header, data=json_encode(data))
+    #     print('Response: ' + r.text)
+    #     return r
